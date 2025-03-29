@@ -13,6 +13,42 @@
 
 
 <style>
+  /* Perfect Keto Header Customizations */
+  .header-wrapper {
+    background-color: #000000;
+  }
+  
+  .header {
+    background-color: #000000;
+  }
+  
+  .header__heading-link,
+  .list-menu__item,
+  .header__menu-item {
+    color: #FFFFFF !important;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 500;
+  }
+
+  .header__icons * {
+    color: #FFFFFF;
+  }
+
+  .header__icon svg,
+  .header__icon .icon {
+    fill: #FFFFFF;
+  }
+
+  .menu-drawer {
+    background-color: #000000;
+  }
+
+  .menu-drawer * {
+    color: #FFFFFF;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+
+  /* Modify header layout to be more like Perfect Keto */  
   header-drawer {
     justify-self: start;
     margin-left: -1.2rem;
@@ -64,17 +100,52 @@
     line-height: calc(1 + 0.8 / var(--font-body-scale));
   }
 
+  /* Updated header details with Helvetica fonts */
+  .header__icon--account span.icon {
+    color: #FFFFFF;
+    fill: #FFFFFF;
+  }
+  
+  .header__menu-item span {
+    color: #FFFFFF;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-weight: 500;
+  }
+  
+  .header__submenu {
+    background-color: #000000;
+    border: 1px solid #333333;
+  }
+  
+  .header__submenu .header__menu-item {
+    color: #FFFFFF;
+  }
+
   @media screen and (min-width: 750px) {
     .list-menu__item--link {
       padding-bottom: 0.5rem;
       padding-top: 0.5rem;
     }
   }
+  
+  /* Cart notification styling */
+  .cart-notification {
+    background-color: #FFFFFF;
+    color: #000000;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  
+  /* Style cart count bubble */
+  .cart-count-bubble {
+    background-color: #e1ebef;
+    color: #000000;
+  }
 </style>
 
 {%- style -%}
   .header {
     padding: {{ section.settings.padding_top | times: 0.5 | round: 0 }}px 3rem {{ section.settings.padding_bottom | times: 0.5 | round: 0 }}px 3rem;
+    background-color: #000000;
   }
 
   .section-header {
@@ -550,10 +621,6 @@
       "label": "t:sections.header.settings.show_line_separator.label"
     },
     {
-      "type": "header",
-      "content": "t:sections.header.settings.header__1.content"
-    },
-    {
       "type": "color_scheme",
       "id": "color_scheme",
       "label": "t:sections.all.colors.label",
@@ -633,6 +700,15 @@
     {
       "type": "@app"
     }
-  ]
+  ],
+  "default": {
+    "settings": {
+      "logo_position": "middle-left",
+      "menu": "main-menu",
+      "sticky_header_type": "always",
+      "padding_top": 20,
+      "padding_bottom": 20
+    }
+  }
 }
 {% endschema %}
