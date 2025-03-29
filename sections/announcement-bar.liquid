@@ -29,7 +29,6 @@
     display: flex;
     white-space: nowrap;
     animation: scroll {{ section.settings.scroll_speed }}s linear infinite;
-    width: fit-content;
   }
   
   .infinite-scroll-message {
@@ -43,8 +42,12 @@
   }
   
   @keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-33.33%); }
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
   }
   
   {% if section.settings.pause_on_hover %}
