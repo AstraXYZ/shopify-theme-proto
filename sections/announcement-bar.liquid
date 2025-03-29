@@ -34,8 +34,8 @@
   
   .marquee-content {
     display: flex;
-    white-space: nowrap; /* prevent wrapping */
-    animation: marquee {{ section.settings.scroll_speed }}s linear infinite;
+    white-space: nowrap;
+    will-change: transform;
   }
   
   .infinite-scroll-message {
@@ -49,21 +49,6 @@
     flex-shrink: 0;
   }
   
-  @keyframes marquee {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%); /* scroll by one complete copy */
-    }
-  }
-  
-  {% if section.settings.pause_on_hover %}
-  .marquee:hover .marquee-content {
-    animation-play-state: paused;
-  }
-  {% endif %}
-  
   @media screen and (max-width: 749px) {
     .infinite-scroll-message {
       font-size: 12px;
@@ -73,39 +58,26 @@
 </style>
 
 
-<div class="marquee">
-  <div class="marquee-content">
-    {%- comment -%} First set of messages {%- endcomment -%}
-    {%- for block in section.blocks -%}
-      <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
-        {%- if block.settings.text != blank -%}
-          {%- if block.settings.link != blank -%}
-            <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+<div class="infinite-scroll-bar" role="region" aria-label="{{ 'sections.header.announcement' | t }}">
+  <div class="marquee">
+    <div class="marquee-content">
+      {%- for block in section.blocks -%}
+        <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
+          {%- if block.settings.text != blank -%}
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+            {%- endif -%}
+              <span>{{ block.settings.text | escape }}</span>
+            {%- if block.settings.link != blank -%}
+              </a>
+            {%- endif -%}
           {%- endif -%}
-            <span>{{ block.settings.text | escape }}</span>
-          {%- if block.settings.link != blank -%}
-            </a>
-          {%- endif -%}
-        {%- endif -%}
-      </div>
-    {%- endfor -%}
-    
-    {%- comment -%} Duplicate set of messages to create seamless loop {%- endcomment -%}
-    {%- for block in section.blocks -%}
-      <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
-        {%- if block.settings.text != blank -%}
-          {%- if block.settings.link != blank -%}
-            <a href="{{ block.settings.link }}" class="link link--text focus-inset">
-          {%- endif -%}
-            <span>{{ block.settings.text | escape }}</span>
-          {%- if block.settings.link != blank -%}
-            </a>
-          {%- endif -%}
-        {%- endif -%}
-      </div>
-    {%- endfor -%}
+        </div>
+      {%- endfor -%}
+    </div>
   </div>
 </div>
+
 
 
 {% schema %}
