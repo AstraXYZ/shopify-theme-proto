@@ -23,12 +23,20 @@
     padding: 10px 0;
     overflow: hidden;
     width: 100%;
+    position: relative;
   }
   
-  .infinite-scroll-container {
+  .marquee {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .marquee-content {
     display: flex;
-    white-space: nowrap;
-    animation: scroll {{ section.settings.scroll_speed }}s linear infinite;
+    animation: marquee {{ section.settings.scroll_speed }}s linear infinite;
+    position: relative;
+    width: fit-content;
   }
   
   .infinite-scroll-message {
@@ -38,20 +46,21 @@
     font-size: 14px;
     padding: 0 30px;
     letter-spacing: 0.05em;
+    white-space: nowrap;
     flex-shrink: 0;
   }
   
-  @keyframes scroll {
+  @keyframes marquee {
     0% {
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-100%);
+      transform: translateX(-50%);
     }
   }
   
   {% if section.settings.pause_on_hover %}
-  .infinite-scroll-bar:hover .infinite-scroll-container {
+  .marquee:hover .marquee-content {
     animation-play-state: paused;
   }
   {% endif %}
@@ -74,50 +83,38 @@
     
     {%- if section.blocks.size > 0 -%}
       <div class="infinite-scroll-bar" role="region" aria-label="{{ 'sections.header.announcement' | t }}">
-        <div class="infinite-scroll-container">
-          {%- for block in section.blocks -%}
-            <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
-              {%- if block.settings.text != blank -%}
-                {%- if block.settings.link != blank -%}
-                  <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+        <div class="marquee">
+          <div class="marquee-content">
+            {%- comment -%} First set of messages {%- endcomment -%}
+            {%- for block in section.blocks -%}
+              <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
+                {%- if block.settings.text != blank -%}
+                  {%- if block.settings.link != blank -%}
+                    <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+                  {%- endif -%}
+                    <span>{{ block.settings.text | escape }}</span>
+                  {%- if block.settings.link != blank -%}
+                    </a>
+                  {%- endif -%}
                 {%- endif -%}
-                  <span>{{ block.settings.text | escape }}</span>
-                {%- if block.settings.link != blank -%}
-                  </a>
+              </div>
+            {%- endfor -%}
+            
+            {%- comment -%} Duplicate set of messages to create seamless loop {%- endcomment -%}
+            {%- for block in section.blocks -%}
+              <div class="infinite-scroll-message">
+                {%- if block.settings.text != blank -%}
+                  {%- if block.settings.link != blank -%}
+                    <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+                  {%- endif -%}
+                    <span>{{ block.settings.text | escape }}</span>
+                  {%- if block.settings.link != blank -%}
+                    </a>
+                  {%- endif -%}
                 {%- endif -%}
-              {%- endif -%}
-            </div>
-          {%- endfor -%}
-          
-          {%- comment -%} Duplicate messages for seamless looping {%- endcomment -%}
-          {%- for block in section.blocks -%}
-            <div class="infinite-scroll-message">
-              {%- if block.settings.text != blank -%}
-                {%- if block.settings.link != blank -%}
-                  <a href="{{ block.settings.link }}" class="link link--text focus-inset">
-                {%- endif -%}
-                  <span>{{ block.settings.text | escape }}</span>
-                {%- if block.settings.link != blank -%}
-                  </a>
-                {%- endif -%}
-              {%- endif -%}
-            </div>
-          {%- endfor -%}
-
-          {%- comment -%} Third set of messages for smoother infinite scroll {%- endcomment -%}
-          {%- for block in section.blocks -%}
-            <div class="infinite-scroll-message">
-              {%- if block.settings.text != blank -%}
-                {%- if block.settings.link != blank -%}
-                  <a href="{{ block.settings.link }}" class="link link--text focus-inset">
-                {%- endif -%}
-                  <span>{{ block.settings.text | escape }}</span>
-                {%- if block.settings.link != blank -%}
-                  </a>
-                {%- endif -%}
-              {%- endif -%}
-            </div>
-          {%- endfor -%}
+              </div>
+            {%- endfor -%}
+          </div>
         </div>
       </div>
     {%- endif -%}
@@ -160,12 +157,12 @@
     {
       "type": "range",
       "id": "scroll_speed",
-      "min": 15,
-      "max": 60,
-      "step": 5,
+      "min": 5,
+      "max": 30,
+      "step": 1,
       "unit": "s",
-      "label": "Scroll Speed",
-      "default": 30
+      "label": "Scroll Speed (lower is faster)",
+      "default": 15
     },
     {
       "type": "checkbox",
@@ -254,6 +251,12 @@
           "type": "announcement",
           "settings": {
             "text": "NEW PRODUCTS JUST ARRIVED"
+          }
+        },
+        {
+          "type": "announcement",
+          "settings": {
+            "text": "LIMITED TIME OFFER: BUY 2 GET 1 FREE"
           }
         }
       ]
