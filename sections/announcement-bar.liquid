@@ -34,9 +34,8 @@
   
   .marquee-content {
     display: flex;
+    white-space: nowrap; /* prevent wrapping */
     animation: marquee {{ section.settings.scroll_speed }}s linear infinite;
-    position: relative;
-    width: fit-content;
   }
   
   .infinite-scroll-message {
@@ -55,7 +54,7 @@
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translateX(-50%); /* scroll by one complete copy */
     }
   }
   
@@ -73,77 +72,41 @@
   }
 </style>
 
-<div
-  class="utility-bar color-{{ section.settings.color_scheme }} gradient{% if section.settings.show_line_separator and section.blocks.size > 0 %} utility-bar--bottom-border{% elsif section.settings.show_line_separator and section.settings.show_social and social_icons%} utility-bar--bottom-border-social-only{% endif %}{% if section.settings.enable_country_selector or section.settings.enable_language_selector %} header-localization{% endif %}"
->
-  <div class="page-width utility-bar__grid{% if announcement_bar and language_country_selector or section.settings.show_social and social_icons %} utility-bar__grid--3-col{% elsif language_country_selector or section.settings.show_social and social_icons %} utility-bar__grid--2-col{% endif %}">
-    {%- if section.settings.show_social and social_icons -%}
-      {%- render 'social-icons' -%}
-    {%- endif -%}
-    
-    {%- if section.blocks.size > 0 -%}
-      <div class="infinite-scroll-bar" role="region" aria-label="{{ 'sections.header.announcement' | t }}">
-        <div class="marquee">
-          <div class="marquee-content">
-            {%- comment -%} First set of messages {%- endcomment -%}
-            {%- for block in section.blocks -%}
-              <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
-                {%- if block.settings.text != blank -%}
-                  {%- if block.settings.link != blank -%}
-                    <a href="{{ block.settings.link }}" class="link link--text focus-inset">
-                  {%- endif -%}
-                    <span>{{ block.settings.text | escape }}</span>
-                  {%- if block.settings.link != blank -%}
-                    </a>
-                  {%- endif -%}
-                {%- endif -%}
-              </div>
-            {%- endfor -%}
-            
-            {%- comment -%} Duplicate set of messages to create seamless loop {%- endcomment -%}
-            {%- for block in section.blocks -%}
-              <div class="infinite-scroll-message">
-                {%- if block.settings.text != blank -%}
-                  {%- if block.settings.link != blank -%}
-                    <a href="{{ block.settings.link }}" class="link link--text focus-inset">
-                  {%- endif -%}
-                    <span>{{ block.settings.text | escape }}</span>
-                  {%- if block.settings.link != blank -%}
-                    </a>
-                  {%- endif -%}
-                {%- endif -%}
-              </div>
-            {%- endfor -%}
-          </div>
-        </div>
-      </div>
-    {%- endif -%}
-    
-    <div class="localization-wrapper">
-      {%- if section.settings.enable_country_selector and localization.available_countries.size > 1 -%}
-        <localization-form class="small-hide medium-hide">
-          {%- form 'localization', id: 'AnnouncementCountryForm', class: 'localization-form' -%}
-            <div>
-              <h2 class="visually-hidden" id="AnnouncementCountryLabel">{{ 'localization.country_label' | t }}</h2>
-              {%- render 'country-localization', localPosition: 'AnnouncementCountry' -%}
-            </div>
-          {%- endform -%}
-        </localization-form>
-      {% endif %}
 
-      {%- if section.settings.enable_language_selector and localization.available_languages.size > 1 -%}
-        <localization-form class="small-hide medium-hide">
-          {%- form 'localization', id: 'AnnouncementLanguageForm', class: 'localization-form' -%}
-            <div>
-              <h2 class="visually-hidden" id="AnnouncementLanguageLabel">{{ 'localization.language_label' | t }}</h2>
-              {%- render 'language-localization', localPosition: 'AnnouncementLanguage' -%}
-            </div>
-          {%- endform -%}
-        </localization-form>
-      {%- endif -%}
-    </div>
+<div class="marquee">
+  <div class="marquee-content">
+    {%- comment -%} First set of messages {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
+        {%- if block.settings.text != blank -%}
+          {%- if block.settings.link != blank -%}
+            <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+          {%- endif -%}
+            <span>{{ block.settings.text | escape }}</span>
+          {%- if block.settings.link != blank -%}
+            </a>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+    
+    {%- comment -%} Duplicate set of messages to create seamless loop {%- endcomment -%}
+    {%- for block in section.blocks -%}
+      <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
+        {%- if block.settings.text != blank -%}
+          {%- if block.settings.link != blank -%}
+            <a href="{{ block.settings.link }}" class="link link--text focus-inset">
+          {%- endif -%}
+            <span>{{ block.settings.text | escape }}</span>
+          {%- if block.settings.link != blank -%}
+            </a>
+          {%- endif -%}
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
   </div>
 </div>
+
 
 {% schema %}
 {
