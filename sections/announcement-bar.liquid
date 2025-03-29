@@ -26,16 +26,16 @@
     position: relative;
   }
   
-  .marquee {
+  .marquee-container {
     width: 100%;
     overflow: hidden;
     position: relative;
   }
   
   .marquee-content {
-    display: flex;
+    display: inline-flex;
     white-space: nowrap;
-    will-change: transform;
+    animation: marquee-scroll {{ section.settings.scroll_speed }}s linear infinite;
   }
   
   .infinite-scroll-message {
@@ -49,6 +49,21 @@
     flex-shrink: 0;
   }
   
+  @keyframes marquee-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  {% if section.settings.pause_on_hover %}
+  .marquee-container:hover .marquee-content {
+    animation-play-state: paused;
+  }
+  {% endif %}
+  
   @media screen and (max-width: 749px) {
     .infinite-scroll-message {
       font-size: 12px;
@@ -57,10 +72,9 @@
   }
 </style>
 
-
 <div class="infinite-scroll-bar" role="region" aria-label="{{ 'sections.header.announcement' | t }}">
-  <div class="marquee">
-    <div class="marquee-content">
+  <div class="marquee-container">
+    <div id="marquee-content" class="marquee-content">
       {%- for block in section.blocks -%}
         <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
           {%- if block.settings.text != blank -%}
@@ -78,7 +92,54 @@
   </div>
 </div>
 
-
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get the parent container and the content
+    const marqueeContent = document.getElementById('marquee-content');
+    
+    // If no blocks, exit early
+    if (!marqueeContent || !marqueeContent.children.length) return;
+    
+    // Clone the content enough times to fill the screen width multiple times
+    // This ensures smooth infinite scrolling
+    const contentWidth = marqueeContent.offsetWidth;
+    const screenWidth = window.innerWidth;
+    
+    // Calculate how many copies we need (at least 2, plus enough to fill screen 2x)
+    const copiesNeeded = Math.max(2, Math.ceil(screenWidth / contentWidth) * 2);
+    
+    // Clone the content
+    for (let i = 0; i < copiesNeeded; i++) {
+      const clone = marqueeContent.cloneNode(true);
+      // Remove the ID from clones
+      clone.removeAttribute('id');
+      marqueeContent.after(clone);
+    }
+    
+    // Set CSS custom property for animation duration based on content width
+    // This makes the animation speed consistent regardless of content length
+    const scrollSpeed = {{ section.settings.scroll_speed | json }};
+    document.documentElement.style.setProperty('--marquee-duration', scrollSpeed + 's');
+    
+    // Update animation on window resize
+    window.addEventListener('resize', function() {
+      // Check if we need more clones based on new window size
+      const currentContentWidth = document.querySelector('.marquee-content').offsetWidth;
+      const currentScreenWidth = window.innerWidth;
+      const currentCopies = document.querySelectorAll('.marquee-content').length;
+      const newCopiesNeeded = Math.max(2, Math.ceil(currentScreenWidth / currentContentWidth) * 2);
+      
+      if (newCopiesNeeded > currentCopies) {
+        const originalContent = document.getElementById('marquee-content');
+        for (let i = 0; i < newCopiesNeeded - currentCopies; i++) {
+          const clone = originalContent.cloneNode(true);
+          clone.removeAttribute('id');
+          originalContent.after(clone);
+        }
+      }
+    });
+  });
+</script>
 
 {% schema %}
 {
@@ -92,12 +153,12 @@
     {
       "type": "range",
       "id": "scroll_speed",
-      "min": 5,
-      "max": 30,
+      "min": 2,
+      "max": 20,
       "step": 1,
       "unit": "s",
       "label": "Scroll Speed (lower is faster)",
-      "default": 15
+      "default": 10
     },
     {
       "type": "checkbox",
