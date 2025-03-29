@@ -32,10 +32,10 @@
     position: relative;
   }
   
-  .marquee-content {
-    display: inline-flex;
+  .marquee-track {
+    display: flex;
+    position: relative;
     white-space: nowrap;
-    animation: marquee-scroll {{ section.settings.scroll_speed }}s linear infinite;
   }
   
   .infinite-scroll-message {
@@ -49,21 +49,6 @@
     flex-shrink: 0;
   }
   
-  @keyframes marquee-scroll {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-100%);
-    }
-  }
-  
-  {% if section.settings.pause_on_hover %}
-  .marquee-container:hover .marquee-content {
-    animation-play-state: paused;
-  }
-  {% endif %}
-  
   @media screen and (max-width: 749px) {
     .infinite-scroll-message {
       font-size: 12px;
@@ -74,9 +59,9 @@
 
 <div class="infinite-scroll-bar" role="region" aria-label="{{ 'sections.header.announcement' | t }}">
   <div class="marquee-container">
-    <div id="marquee-content" class="marquee-content">
+    <div id="marquee-track" class="marquee-track">
       {%- for block in section.blocks -%}
-        <div class="infinite-scroll-message" {{ block.shopify_attributes }}>
+        <div class="infinite-scroll-message" data-message-id="{{ forloop.index }}" {{ block.shopify_attributes }}>
           {%- if block.settings.text != blank -%}
             {%- if block.settings.link != blank -%}
               <a href="{{ block.settings.link }}" class="link link--text focus-inset">
@@ -94,48 +79,87 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Get the parent container and the content
-    const marqueeContent = document.getElementById('marquee-content');
+    const marqueeTrack = document.getElementById('marquee-track');
+    if (!marqueeTrack || marqueeTrack.children.length === 0) return;
+
+    // Store the original messages
+    const originalMessages = Array.from(marqueeTrack.children);
+    const messageWidth = originalMessages.reduce((total, msg) => total + msg.offsetWidth, 0);
     
-    // If no blocks, exit early
-    if (!marqueeContent || !marqueeContent.children.length) return;
+    // Make sure we have enough messages to fill the screen
+    const viewportWidth = window.innerWidth;
+    const repeatsNeeded = Math.ceil(viewportWidth / messageWidth) + 1;
     
-    // Clone the content enough times to fill the screen width multiple times
-    // This ensures smooth infinite scrolling
-    const contentWidth = marqueeContent.offsetWidth;
-    const screenWidth = window.innerWidth;
-    
-    // Calculate how many copies we need (at least 2, plus enough to fill screen 2x)
-    const copiesNeeded = Math.max(2, Math.ceil(screenWidth / contentWidth) * 2);
-    
-    // Clone the content
-    for (let i = 0; i < copiesNeeded; i++) {
-      const clone = marqueeContent.cloneNode(true);
-      // Remove the ID from clones
-      clone.removeAttribute('id');
-      marqueeContent.after(clone);
+    // Clone messages to fill the screen
+    for (let i = 0; i < repeatsNeeded; i++) {
+      originalMessages.forEach(msg => {
+        const clone = msg.cloneNode(true);
+        marqueeTrack.appendChild(clone);
+      });
     }
     
-    // Set CSS custom property for animation duration based on content width
-    // This makes the animation speed consistent regardless of content length
-    const scrollSpeed = {{ section.settings.scroll_speed | json }};
-    document.documentElement.style.setProperty('--marquee-duration', scrollSpeed + 's');
+    // Animation variables
+    let scrollPosition = 0;
+    const scrollSpeed = {{ section.settings.scroll_speed | default: 1 }};
+    let animationPaused = false;
     
-    // Update animation on window resize
-    window.addEventListener('resize', function() {
-      // Check if we need more clones based on new window size
-      const currentContentWidth = document.querySelector('.marquee-content').offsetWidth;
-      const currentScreenWidth = window.innerWidth;
-      const currentCopies = document.querySelectorAll('.marquee-content').length;
-      const newCopiesNeeded = Math.max(2, Math.ceil(currentScreenWidth / currentContentWidth) * 2);
+    // Animation function that moves one pixel at a time
+    function scrollMarquee() {
+      if (animationPaused) return;
       
-      if (newCopiesNeeded > currentCopies) {
-        const originalContent = document.getElementById('marquee-content');
-        for (let i = 0; i < newCopiesNeeded - currentCopies; i++) {
-          const clone = originalContent.cloneNode(true);
-          clone.removeAttribute('id');
-          originalContent.after(clone);
-        }
+      scrollPosition -= scrollSpeed;
+      
+      // When first element moves completely offscreen, move it to the end
+      const firstElement = marqueeTrack.firstElementChild;
+      if (firstElement && Math.abs(scrollPosition) > firstElement.offsetWidth) {
+        // Reset scroll position by the width of the removed element
+        scrollPosition += firstElement.offsetWidth;
+        
+        // Move the first element to the end
+        marqueeTrack.appendChild(firstElement);
+      }
+      
+      // Apply the new position
+      marqueeTrack.style.transform = `translateX(${scrollPosition}px)`;
+      
+      // Continue animation
+      requestAnimationFrame(scrollMarquee);
+    }
+    
+    // Start the animation
+    requestAnimationFrame(scrollMarquee);
+    
+    // Pause on hover if enabled
+    {% if section.settings.pause_on_hover %}
+    marqueeTrack.parentElement.addEventListener('mouseenter', () => {
+      animationPaused = true;
+    });
+    
+    marqueeTrack.parentElement.addEventListener('mouseleave', () => {
+      animationPaused = false;
+      requestAnimationFrame(scrollMarquee);
+    });
+    {% endif %}
+    
+    // Handle visibility changes (pause when tab is inactive)
+    document.addEventListener('visibilitychange', () => {
+      animationPaused = document.hidden;
+      if (!animationPaused) {
+        requestAnimationFrame(scrollMarquee);
+      }
+    });
+    
+    // Handle window resize - add more clones if needed
+    window.addEventListener('resize', () => {
+      const currentWidth = marqueeTrack.scrollWidth;
+      const newViewportWidth = window.innerWidth;
+      
+      if (currentWidth < newViewportWidth * 2) {
+        // Add more clones if needed
+        originalMessages.forEach(msg => {
+          const clone = msg.cloneNode(true);
+          marqueeTrack.appendChild(clone);
+        });
       }
     });
   });
@@ -153,12 +177,12 @@
     {
       "type": "range",
       "id": "scroll_speed",
-      "min": 2,
-      "max": 20,
-      "step": 1,
-      "unit": "s",
-      "label": "Scroll Speed (lower is faster)",
-      "default": 10
+      "min": 1,
+      "max": 5,
+      "step": 0.5,
+      "unit": "px",
+      "label": "Scroll Speed (pixels per frame)",
+      "default": 1
     },
     {
       "type": "checkbox",
