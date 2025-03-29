@@ -100,14 +100,15 @@
       }
 
       :root {
-        --font-body-family: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
-        --font-body-style: {{ settings.type_body_font.style }};
-        --font-body-weight: {{ settings.type_body_font.weight }};
-        --font-body-weight-bold: {{ settings.type_body_font.weight | plus: 300 | at_most: 1000 }};
+        /* Override with Helvetica font family */
+        --font-body-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-body-style: normal;
+        --font-body-weight: 400;
+        --font-body-weight-bold: 700;
 
-        --font-heading-family: {{ settings.type_header_font.family }}, {{ settings.type_header_font.fallback_families }};
-        --font-heading-style: {{ settings.type_header_font.style }};
-        --font-heading-weight: {{ settings.type_header_font.weight }};
+        --font-heading-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        --font-heading-style: normal;
+        --font-heading-weight: 700;
 
         --font-body-scale: {{ settings.body_scale | divided_by: 100.0 }};
         --font-heading-scale: {{ settings.heading_scale | times: 1.0 | divided_by: settings.body_scale }};
@@ -192,10 +193,11 @@
         --text-boxes-shadow-vertical-offset: {{ settings.text_boxes_shadow_vertical_offset }}px;
         --text-boxes-shadow-blur-radius: {{ settings.text_boxes_shadow_blur }}px;
 
-        --buttons-radius: {{ settings.buttons_radius }}px;
-        --buttons-radius-outset: {% if settings.buttons_radius > 0 %}{{ settings.buttons_radius | plus: settings.buttons_border_thickness }}{% else %}0{% endif %}px;
-        --buttons-border-width: {% if settings.buttons_border_opacity > 0 %}{{ settings.buttons_border_thickness }}{% else %}0{% endif %}px;
-        --buttons-border-opacity: {{ settings.buttons_border_opacity | divided_by: 100.0 }};
+        /* Perfect Keto styling - buttons with rounded corners */
+        --buttons-radius: 20px;
+        --buttons-radius-outset: 20px;
+        --buttons-border-width: 0px;
+        --buttons-border-opacity: 0;
         --buttons-shadow-opacity: {{ settings.buttons_shadow_opacity | divided_by: 100.0 }};
         --buttons-shadow-visible: {% if settings.buttons_shadow_opacity > 0 %}1{% else %}0{% endif %};
         --buttons-shadow-horizontal-offset: {{ settings.buttons_shadow_horizontal_offset }}px;
@@ -253,6 +255,132 @@
           font-size: 1.6rem;
         }
       }
+
+      /* Perfect Keto Theme Customizations */
+      .header {
+        background-color: #000000;
+      }
+
+      .header__menu-item {
+        color: #ffffff;
+        font-weight: 500;
+        text-transform: none;
+      }
+
+      .header__icon svg {
+        fill: #ffffff;
+      }
+
+      .header__heading-link {
+        color: #ffffff;
+      }
+
+      .button {
+        background-color: #000000;
+        color: #ffffff;
+        border-radius: 2rem;
+        padding: 1rem 2rem;
+        font-weight: 500;
+        text-transform: none;
+        border: none;
+        transition: all 0.3s ease;
+      }
+
+      .button:hover {
+        opacity: 0.9;
+      }
+
+      .hero-heading {
+        font-size: 4rem;
+        line-height: 1.1;
+        margin-bottom: 1rem;
+        font-weight: 700;
+      }
+
+      .hero-subheading {
+        font-size: 1.4rem;
+        line-height: 1.4;
+        margin-bottom: 2rem;
+      }
+
+      .hero-banner {
+        background-color: #e1ebef;
+        padding: 5rem 0;
+      }
+
+      .hero-banner__content {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+      }
+
+      .hero-banner__text-content {
+        flex: 1;
+        max-width: 50%;
+      }
+
+      .hero-banner__image-content {
+        flex: 1;
+      }
+
+      .card-wrapper {
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease;
+      }
+
+      .card-wrapper:hover {
+        transform: translateY(-5px);
+      }
+
+      .feature-bar {
+        padding: 1rem 0;
+        background-color: #f9f9f9;
+        border-top: 1px solid #eaeaea;
+        border-bottom: 1px solid #eaeaea;
+      }
+
+      .feature-bar__content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .feature-bar__item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .feature-bar__text {
+        font-size: 0.9rem;
+        margin: 0;
+      }
+
+      @media screen and (max-width: 749px) {
+        .hero-heading {
+          font-size: 2.5rem;
+        }
+        
+        .hero-subheading {
+          font-size: 1.1rem;
+        }
+        
+        .hero-banner__content {
+          flex-direction: column;
+        }
+        
+        .hero-banner__text-content {
+          max-width: 100%;
+        }
+        
+        .feature-bar__content {
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+      }
     {% endstyle %}
 
     {{ 'base.css' | asset_url | stylesheet_tag }}
@@ -267,14 +395,10 @@
     {%- endif -%}
 
     {%- unless settings.type_body_font.system? -%}
-      {% comment %}theme-check-disable AssetPreload{% endcomment %}
       <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin>
-      {% comment %}theme-check-enable AssetPreload{% endcomment %}
     {%- endunless -%}
     {%- unless settings.type_header_font.system? -%}
-      {% comment %}theme-check-disable AssetPreload{% endcomment %}
       <link rel="preload" as="font" href="{{ settings.type_header_font | font_url }}" type="font/woff2" crossorigin>
-      {% comment %}theme-check-enable AssetPreload{% endcomment %}
     {%- endunless -%}
 
     {%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
